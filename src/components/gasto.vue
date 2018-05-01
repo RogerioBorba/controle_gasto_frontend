@@ -168,12 +168,12 @@ export default {
           this.actualItem.oid = this.idFromUrl(response.headers['content-location'])
           let print_string =  (this.tipo_de_gasto_object != null)?this.tipo_de_gasto_object.descricao:' Tipo de gasto não informado '
           print_string += print_string  + (": " + this.actualItem.valor != null)?this.actualItem.valor:'0'
-          console.log(print_string);
           this.actualItem.print_string = print_string
           this.items.push(this.actualItem)
           this.update_length()
           this.items = this.items_sorted()
           this.selected_page(this.page)
+          this.valor_no_periodo = this.get_gasto_periodo()
           this.clearFormFields()
           this.actualItem = {}
           this.showCreateOrUpdateItem = false
@@ -190,6 +190,8 @@ export default {
       this.actualItem.print_string = (this.get_tipo_de_gasto_object()? this.get_tipo_de_gasto_object().descricao: ' Tipo de gasto não informado: ') + this.actualItem.valor
       axios.put(this.url + this.actualItem.oid + '/', this.actualItem).then(response => {
         if (response.status === 204) {
+          console.log(this.get_gasto_periodo());
+          this.valor_no_periodo = this.get_gasto_periodo()
           //this.items = this.items_sorted()
           this.clearFormFields()
         }
@@ -222,12 +224,15 @@ export default {
       //let index2 = this.items_by_page.indexOf(item)
       axios.delete(this.url + item.oid + '/').then(response => {
         //console.log('Del: ' + this.url + item.oid + '/')
+
         if (index > -1) {
           this.items.splice(index, 1)
           this.update_length()
           this.selected_page(this.page)
         //  this.items_by_page.splice(index2, 1)
+        this.valor_no_periodo = this.get_gasto_periodo()
         }
+
       })
       .catch(error => console.log(error))
     },
@@ -240,7 +245,7 @@ export default {
     },
     get_gasto_periodo() {
       let valor_total = 0
-      this.items.forEach(item=> valor_total+=item.valor)
+      this.items.forEach(item=> valor_total+=parseFloat(item.valor))
       return valor_total
     },
     get_gastos_between() {
