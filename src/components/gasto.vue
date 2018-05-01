@@ -28,7 +28,7 @@
         </v-toolbar>
         <form  v-show="showCreateOrUpdateItem">
 
-          <v-select :items="tipo_de_gasto_list" v-model="tipo_de_gasto_object" item-text="descricao" label="Tipo de Gasto Genérico" @change="changeSelectedTipoGastoGenerico" autocomplete></v-select>
+          <v-select :items="$store.state.tipo_de_gasto_list" v-model="tipo_de_gasto_object" item-text="descricao" label="Tipo de Gasto Genérico" @change="changeSelectedTipoGastoGenerico" autocomplete></v-select>
           <v-flex xs12 sm6 md4>
             <v-menu ref="menu_gasto" lazy :close-on-content-click="false" v-model="menu_gasto" transition="scale-transition" offset-y  full-width :nudge-right="40" min-width="290px" :return-value.sync="actualItem.dataDoGasto">
               <v-text-field slot="activator" label="Data do gasto"  v-model="actualItem.dataDoGasto"  prepend-icon="event" readonly></v-text-field>
@@ -87,7 +87,6 @@ export default {
       total: 0,
       items: [],
       items_by_page: [],
-      tipo_de_gasto_list: [],
       tipo_de_gasto_object: {},
       actualItem: {},
       qtd: 0,
@@ -104,8 +103,8 @@ export default {
       //return this.items.sort((a,b) =>{ return a.descricao.toLowerCase() < b.descricao.toLowerCase() ? -1 : 1 })
       return this.items.sort((a, b) => { return a.print_string.toLowerCase().localeCompare(b.print_string.toLowerCase(), 'pt')})
     },
-    tipos_de_gasto_sorted() {
-      return this.tipo_de_gasto_list.sort((a,b) =>{ return a.descricao.toLowerCase() < b.descricao.toLowerCase() ? -1 : 1 })
+    tipos_de_gasto_sorted(arr_tipo_gasto) {
+      return arr_tipo_gasto.sort((a,b) =>{ return a.descricao.toLowerCase() < b.descricao.toLowerCase() ? -1 : 1 })
     },
     update_length() {
       this.length = Math.ceil(this.items.length/10)
@@ -206,7 +205,7 @@ export default {
       }
       let newid = this.idFromUrl(this.actualItem.tipo_de_gasto);
 
-      genericItemList = this.tipo_de_gasto_list.filter(anItem => anItem.oid === newid)
+      genericItemList = this.$store.state.tipo_de_gasto_list.filter(anItem => anItem.oid === newid)
       if (genericItemList.length === 0) {
         return null;
       }
@@ -232,10 +231,9 @@ export default {
       })
       .catch(error => console.log(error))
     },
-    get_tipos_de_gasto() {
+    load_tipos_de_gasto() {
       axios.get(this.tipo_de_gasto_list_url).then(response => {
-        this.tipo_de_gasto_list = response.data
-        this.tipo_de_gasto_list = this.tipos_de_gasto_sorted()
+        this.set_tipo_de_gasto_list(this.tipos_de_gasto_sorted(response.data))
         this.update_length()
         this.selected_page(1)
       }).catch(error => console.log(error))
@@ -260,6 +258,9 @@ export default {
     date_time_as_string(a_date) {
       return this.date_as_string(a_date) + ' 00:00:00'
     },
+    set_tipo_de_gasto_list(arr) {
+      this.$store.commit('set_tipo_de_gasto_list', arr)
+    }
   },
 
   created: function () {
@@ -267,9 +268,7 @@ export default {
     this.data_inicio = this.date_as_string(new Date(a_date.getFullYear(), a_date.getMonth(), 1));
     this.data_fim = this.date_as_string(new Date(a_date.getFullYear(), a_date.getMonth() + 1, 0));
     this.get_gastos_between()
-    this.get_tipos_de_gasto()
-    this.$store.commit('set_tipo_de_gasto_list', this.tipo_de_gasto_list)
-
+    this.load_tipos_de_gasto()
   }
 }
 </script>

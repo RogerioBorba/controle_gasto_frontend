@@ -47,7 +47,7 @@
 </template>
 
 <script>
-  import {config} from './config';
+  //import {config} from './config';
   import Home from './home';
   import Login from './login';
   import Register from './register';
